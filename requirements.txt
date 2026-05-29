@@ -1,0 +1,8 @@
+# Canary - Anti-Forensics Detector
+# Core dependencies (all pure Python, no external services)
+
+# Optional: Enhanced EVTX parsing (falls back to built-in parser if not available)
+python-evtx>=0.7.4
+
+# Optional: Registry hive parsing for Amcache direct analysis
+python-registry>=1.4.0
