@@ -7,7 +7,6 @@ Tracks program execution evidence for cross-referencing with other artifacts.
 import csv
 import os
 import struct
-import winreg
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional
@@ -101,12 +100,17 @@ class ShimcacheParser:
         """Parse Shimcache directly from live system registry."""
         entries = []
         try:
+            import winreg
+        except ImportError:
+            return entries
+
+        try:
             key_path = r"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache"
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path) as key:
                 value_data, value_type = winreg.QueryValueEx(key, "AppCompatCache")
                 if isinstance(value_data, bytes):
                     entries = list(self._parse_appcompat_data(value_data))
-        except (OSError, WindowsError, FileNotFoundError):
+        except OSError:
             # Try ControlSet001
             try:
                 key_path = r"SYSTEM\ControlSet001\Control\Session Manager\AppCompatCache"
@@ -114,7 +118,7 @@ class ShimcacheParser:
                     value_data, value_type = winreg.QueryValueEx(key, "AppCompatCache")
                     if isinstance(value_data, bytes):
                         entries = list(self._parse_appcompat_data(value_data))
-            except (OSError, FileNotFoundError):
+            except OSError:
                 pass
 
         for e in entries:
